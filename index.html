@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>삼각형의 특수점</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* styles.css */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .input-section {
+            width: 200px;
+        }
+
+        .input-section h2,
+        .canvas-section h2 {
+            margin-bottom: 10px;
+        }
+
+        .input-section label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        .input-section input {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        .input-section button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 5px;
+        }
+
+        .input-section button:hover {
+            background-color: #45a049;
+        }
+
+        .canvas-section {
+            position: relative;
+        }
+
+        #coordinate-plane {
+            border: 1px solid #000;
+        }
+
+        #output {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #333;
+        }
+
+    </style>
+    <script>
+        let points = []; // 점 저장 배열
+        let on = 0;
+
+        function drawTriangle() {
+            const point1 = document.getElementById('point1').value.split(',').map(Number);
+            const point2 = document.getElementById('point2').value.split(',').map(Number);
+            const point3 = document.getElementById('point3').value.split(',').map(Number);
+
+            if (!isValidPoint(point1) || !isValidPoint(point2) || !isValidPoint(point3)) {
+                alert("올바른 좌표를 입력해주세요 (예: 1,2)");
+                return;
+            }
+
+            points = [point1, point2, point3];
+            const canvas = document.getElementById('coordinate-plane');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid(ctx);
+
+            // 삼각형 그리기
+            ctx.beginPath();
+            ctx.moveTo(...convertCoordinates(point1, canvas));
+            ctx.lineTo(...convertCoordinates(point2, canvas));
+            ctx.lineTo(...convertCoordinates(point3, canvas));
+            ctx.closePath();
+            ctx.strokeStyle = 'blue';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function isValidPoint(point) {
+            return point.length === 2 && !isNaN(point[0]) && !isNaN(point[1]);
+        }
+
+        function drawGrid(ctx) {
+            const width = ctx.canvas.width;
+            const height = ctx.canvas.height;
+            const step = 20;
+
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+
+            for (let x = 0; x <= width; x += step) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+
+            for (let y = 0; y <= height; y += step) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+
+            const centerX = Math.floor(width / 2 / step) * step;
+            const centerY = Math.floor(height / 2 / step) * step;
+
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, height);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(width, centerY);
+            ctx.stroke();
+        }
+
+        function convertCoordinates([x, y], canvas) {
+            const offsetX = Math.floor(canvas.width / 2 / 20) * 20;
+            const offsetY = Math.floor(canvas.height / 2 / 20) * 20;
+            return [offsetX + x * 20, offsetY - y * 20];
+        }
+
+        function drawPoint(ctx, [x, y], canvas, color = 'red') {
+            const [cx, cy] = convertCoordinates([x, y], canvas);
+            ctx.beginPath();
+            ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+
+        function drawCircle(ctx, center, radius, canvas) {
+            const [cx, cy] = convertCoordinates(center, canvas);
+            const scaledRadius = radius * 20; // 1 단위 = 20px
+            ctx.beginPath();
+            ctx.arc(cx, cy, scaledRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = 'green';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function updateOutput(text) {
+            document.getElementById('output').innerText = text;
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //외심
+        function calculateCircumcenter() {
+            const [[x1, y1], [x2, y2], [x3, y3]] = points;
+            const d = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2));
+            const ux = ((x1 ** 2 + y1 ** 2) * (y2 - y3) + (x2 ** 2 + y2 ** 2) * (y3 - y1) + (x3 ** 2 + y3 ** 2) * (y1 - y2)) / d;
+            const uy = ((x1 ** 2 + y1 ** 2) * (x3 - x2) + (x2 ** 2 + y2 ** 2) * (x1 - x3) + (x3 ** 2 + y3 ** 2) * (x2 - x1)) / d;
+            const radius = Math.sqrt((ux - x1) ** 2 + (uy - y1) ** 2);
+            return { center: [ux, uy], radius };
+        }
+        function showCircumcenter() {
+            const canvas = document.getElementById('coordinate-plane');
+            const ctx = canvas.getContext('2d');
+            const { center, radius } = calculateCircumcenter();
+            drawPoint(ctx, center, canvas, 'blue');
+            drawCircle(ctx, center, radius, canvas);
+            updateOutput(`외심: (${center[0].toFixed(2)}, ${center[1].toFixed(2)})`);
+        }
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //내심
+        function calculateIncenter() {
+            const [[x1, y1], [x2, y2], [x3, y3]] = points;
+            const a = Math.sqrt((x2 - x3) ** 2 + (y2 - y3) ** 2);
+            const b = Math.sqrt((x3 - x1) ** 2 + (y3 - y1) ** 2);
+            const c = Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
+            const px = (a * x1 + b * x2 + c * x3) / (a + b + c);
+            const py = (a * y1 + b * y2 + c * y3) / (a + b + c);
+            const s = (a + b + c) / 2;
+            const radius = Math.sqrt((s - a) * (s - b) * (s - c) / s);
+            return { center: [px, py], radius };
+        }
+        function showIncenter() {
+            const canvas = document.getElementById('coordinate-plane');
+            const ctx = canvas.getContext('2d');
+            const {center, radius} = calculateIncenter();
+            drawPoint(ctx, center, canvas, 'green');
+            drawCircle(ctx, center, radius, canvas);
+            updateOutput(`내심: (${center[0].toFixed(2)}, ${center[1].toFixed(2)})`);
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //무게 중심
+        function drawLine(ctx, x, y, a, b) {
+            ctx.beginPath();
+            ctx.moveTo(x, y); // 시작점 (x, y)
+            ctx.lineTo(a, b); // 끝점 (a, b)
+            ctx.strokeStyle = 'blue'; // 선 색상
+            ctx.lineWidth = 2; // 선 두께
+            ctx.stroke(); // 선 그리기
+        }
+        function calculateMidpointX(x, y, a, b) {
+            const midX = (x + a) / 2;
+            return midX;
+        }
+        function calculateMidpointY(x, y, a, b) {
+            const midY = (y + b) / 2;
+            return midY ;
+        }
+        function calculateCentroid() {
+            const [[x1, y1], [x2, y2], [x3, y3]] = points;
+            const cx = (x1 + x2 + x3) / 3;
+            const cy = (y1 + y2 + y3) / 3;
+            return { center: [cx, cy] };
+        }
+        function showCentroid() {
+            const canvas = document.getElementById('coordinate-plane');
+            const ctx = canvas.getContext('2d');
+            const [[x1, y1], [x2, y2], [x3, y3]] = points;
+            const a1 = calculateMidpointX(x1,y1,x2,y2);
+            const b1 = calculateMidpointX(x2,y2,x3,y3);
+            const c1 = calculateMidpointX(x3,y3,x1,y1);
+            const a2 = calculateMidpointY(x1,y1,x2,y2);
+            const b2 = calculateMidpointY(x2,y2,x3,y3);
+            const c2 = calculateMidpointY(x1,y1,x3,y3);
+            console.log(a1,a2,b1,b2,c1,c2);
+
+            drawLine(ctx, a1,a2,x3,y3);
+            drawLine(ctx, b1,b2,x1,y1);
+            drawLine(ctx, c1,c2,x2,y2);
+            const { center } = calculateCentroid();
+            drawPoint(ctx, center, canvas, 'orange');
+            updateOutput(`무게중심: (${center[0].toFixed(2)}, ${center[1].toFixed(2)})`);
+        }
+
+
+        ////////////////////////////        ////////////////////////////        ////////////////////////////        ////////////////////////////
+        ////////////////////////////        ////////////////////////////        ////////////////////////////        ////////////////////////////        ////////////////////////////
+
+        // // //수심
+        // function calculateOrthocenter() {
+        //     const [[x1, y1], [x2, y2], [x3, y3]] = points;
+        //
+        //     // 두 직선의 기울기 계산
+        //     const mAB = isNaN((y2 - y1) / (x2 - x1)) ? (y3 - y1) / (x3 - x1) : (y2 - y1) / (x2 - x1); // AB의 기울기
+        //     const mBC = isNaN((y3 - y2) / (x3 - x2)) ? (y3 - y1) / (x3 - x1) : (y3 - y2) / (x3 - x2); // BC의 기울기
+        //     console.log(mAB, mBC);
+        //
+        //     // 수선의 기울기 (역수의 음수)
+        //     const perpSlopeAB = isNaN(-1 / mAB) || !isFinite(-1 / mAB) ? 0 : -1 / mAB; // AB에 대한 수선의 기울기
+        //     const perpSlopeBC = isNaN(-1 / mBC) || !isFinite(-1 / mBC) ? 0 : -1 / mBC; // BC에 대한 수선의 기울기
+        //
+        //     console.log(perpSlopeAB, perpSlopeBC)
+        //
+        //     // 수선이 꼭짓점을 지나는 점 (수선의 방정식)
+        //     const bPerpAB = y3 - perpSlopeAB * x3; // AB에 대한 수선의 y절편
+        //     const bPerpBC = y1 - perpSlopeBC * x1; // BC에 대한 수선의 y절편
+        //
+        //     // 두 직선의 교점 계산
+        //     const ox = (bPerpBC - bPerpAB) / (perpSlopeAB - perpSlopeBC);
+        //     const oy = perpSlopeAB * ox + bPerpAB;
+        //
+        //     return { center: [ox, oy] };
+        // }
+        // function showOrthocenter() {
+        //     const canvas = document.getElementById('coordinate-plane');
+        //     const ctx = canvas.getContext('2d');
+        //     const { center } = calculateOrthocenter();
+        //     drawPoint(ctx, center, canvas, 'purple');
+        //     updateOutput(`수심: (${center[0].toFixed(2)}, ${center[1].toFixed(2)})`);
+        // }
+        // function calculateOrthocenter() {
+        //     const [[x1, y1], [x2, y2], [x3, y3]] = points;
+        //
+        //     const mAB = (y2 - y1) / (x2 - x1); // AB의 기울기
+        //     const mBC = (y3 - y2) / (x3 - x2); // BC의 기울기
+        //     const mCA = (y1 - y3) / (x1 - x3); // CA의 기울기
+        //     let ox,oy;
+        //
+        //     if(isNaN(mAB) || !isFinite(mAB)){
+        //         const reBC = -1/mBC;
+        //         const reCA = -1/mCA;
+        //         const passA = y1 - reBC * x1;
+        //         const passB = y2 - reCA * x2;
+        //         ox = (passB - passA) / (reBC - reCA);
+        //         oy = reBC * ox + passA;
+        //         console.log(1)
+        //     }
+        //     else if(isNaN(mBC) || !isFinite(mBC)){
+        //         const reAB = -1/mAB;
+        //         const reCA = -1/mCA;
+        //         const passC = y3 - reAB * x3;
+        //         const passB = y2 - reCA * x2;
+        //         ox = (passB - passC)/(reAB - reCA);
+        //         oy = reAB * ox + passC;
+        //         console.log(2)
+        //     }
+        //     else if(isNaN(mCA) || !isFinite(mCA)){
+        //         const reAB = -1/mAB;
+        //         const reBC = -1/mBC;
+        //         const passC = y3 - reAB * x3;
+        //         const passA = y1 - reBC * x1;
+        //         ox = (passA - passC) / (reAB - reBC);
+        //         oy = reBC * ox + passA;
+        //         console.log(3)
+        //     }
+        //     else{
+        //         const reAB = -1/mAB;
+        //         const reBC = -1/mBC;
+        //         const passC = y3 - reAB * x3;
+        //         const passA = y1 - reBC * x1;
+        //         ox = (passA - passC) / (reAB - reBC);
+        //         oy = reBC * ox + passA;
+        //         console.log(4)
+        //     }
+        //     console.log(ox,oy)
+        //     return { center : [ox, oy]};
+        // }
+        // function calculateOrthocenter() {
+        //     const [[x1, y1], [x2, y2], [x3, y3]] = points;
+        //
+        //     const mAB = (x2 - x1) === 0 ? Infinity : (y2 - y1) / (x2 - x1); // AB의 기울기
+        //     const mBC = (x3 - x2) === 0 ? Infinity : (y3 - y2) / (x3 - x2); // BC의 기울기
+        //     const mCA = (x1 - x3) === 0 ? Infinity : (y1 - y3) / (x1 - x3); // CA의 기울기
+        //     let ox, oy;
+        //
+        //     if (Math.abs(mAB) === Infinity) {
+        //         const reBC = -1 / mBC;
+        //         const reCA = -1 / mCA;
+        //         const passA = y1 - reBC * x1;
+        //         const passB = y2 - reCA * x2;
+        //         ox = (passB - passA) / (reBC - reCA);
+        //         oy = reBC * ox + passA;
+        //     } else if (Math.abs(mBC) === Infinity) {
+        //         const reAB = -1 / mAB;
+        //         const reCA = -1 / mCA;
+        //         const passC = y3 - reCA * x3;
+        //         const passB = y2 - reAB * x2;
+        //         ox = (passB - passC) / (reAB - reCA);
+        //         oy = reAB * ox + passB;
+        //     } else if (Math.abs(mCA) === Infinity) {
+        //         const reAB = -1 / mAB;
+        //         const reBC = -1 / mBC;
+        //         const passC = y3 - reAB * x3;
+        //         const passA = y1 - reBC * x1;
+        //         ox = (passA - passC) / (reBC - reAB);
+        //         oy = reBC * ox + passA;
+        //     } else {
+        //         const reAB = -1 / mAB;
+        //         const reBC = -1 / mBC;
+        //         const passC = y3 - reAB * x3;
+        //         const passA = y1 - reBC * x1;
+        //         ox = (passA - passC) / (reBC - reAB);
+        //         oy = reBC * ox + passA;
+        //     }
+        //
+        //     console.log(ox, oy);
+        //     return { center: [ox, oy] };
+        // }
+
+        //
+        // function showOrthocenter() {
+        //     const canvas = document.getElementById('coordinate-plane');
+        //     const ctx = canvas.getContext('2d');
+        //     const { center } = calculateOrthocenter();
+        //
+        //     drawPoint(ctx, center, canvas, 'purple');
+        //     updateOutput(`수심: (${center[0].toFixed(2)}, ${center[1].toFixed(2)})`);
+        // }
+        function calculateOrthocenter() {
+            const [[x1, y1], [x2, y2], [x3, y3]] = points;
+
+            // 두 변의 기울기 계산
+            const mAB = x2 === x1 ? Infinity : (y2 - y1) / (x2 - x1); // AB의 기울기
+            const mBC = x3 === x2 ? Infinity : (y3 - y2) / (x3 - x2); // BC의 기울기
+
+            // 수선의 기울기 (역수의 음수)
+            const perpSlopeAB = mAB === Infinity ? 0 : mAB === 0 ? Infinity : -1 / mAB; // AB에 대한 수선의 기울기
+            const perpSlopeBC = mBC === Infinity ? 0 : mBC === 0 ? Infinity : -1 / mBC; // BC에 대한 수선의 기울기
+
+            // 수선이 꼭짓점을 지나는 y절편 계산
+            const bPerpAB = mAB === Infinity ? x3 : y3 - perpSlopeAB * x3;
+            const bPerpBC = mBC === Infinity ? x1 : y1 - perpSlopeBC * x1;
+
+            // 두 수선의 교점 계산
+            if (perpSlopeAB === perpSlopeBC) {
+                // 수선이 평행한 경우 또는 동일한 기울기일 경우
+                return { center: [NaN, NaN] };
+            }
+
+            let ox, oy;
+
+            if (mAB === Infinity) {
+                // AB가 수직선인 경우
+                ox = x1;
+                oy = perpSlopeBC * ox + bPerpBC;
+            } else if (mBC === Infinity) {
+                // BC가 수직선인 경우
+                ox = x2;
+                oy = perpSlopeAB * ox + bPerpAB;
+            } else {
+                // 일반적인 경우
+                ox = (bPerpBC - bPerpAB) / (perpSlopeAB - perpSlopeBC);
+                oy = perpSlopeAB * ox + bPerpAB;
+            }
+
+            return { center: [ox, oy] };
+        }
+
+        function showOrthocenter() {
+            const canvas = document.getElementById('coordinate-plane');
+            const ctx = canvas.getContext('2d');
+            const { center } = calculateOrthocenter();
+
+            if (isNaN(center[0]) || isNaN(center[1])) {
+                updateOutput("수심: 계산할 수 없습니다 (평행선 또는 다른 문제).");
+                return;
+            }
+
+            drawPoint(ctx, center, canvas, 'purple');
+            updateOutput(`수심: (${center[0].toFixed(2)}, ${center[1].toFixed(2)})`);
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // //방심
+        function calculateAllExcenters() {
+            const [[x1, y1], [x2, y2], [x3, y3]] = points;
+
+            // 각 변의 길이 계산
+            const a = Math.sqrt((x2 - x3) ** 2 + (y2 - y3) ** 2); // BC
+            const b = Math.sqrt((x3 - x1) ** 2 + (y3 - y1) ** 2); // CA
+            const c = Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2); // AB
+
+            // 각 방심의 좌표 계산
+            const excenter1 = [(-a * x1 + b * x2 + c * x3) / (-a + b + c), (-a * y1 + b * y2 + c * y3) / (-a + b + c)];
+            const excenter2 = [(a * x1 - b * x2 + c * x3) / (a - b + c), (a * y1 - b * y2 + c * y3) / (a - b + c)];
+            const excenter3 = [(a * x1 + b * x2 - c * x3) / (a + b - c), (a * y1 + b * y2 - c * y3) / (a + b - c)];
+
+            return [excenter1, excenter2, excenter3];
+        }
+
+        function calculateDistanceToLine([px, py], [x1, y1], [x2, y2]) {
+            // 점 (px, py)와 선 (x1, y1) - (x2, y2) 사이의 거리
+            const numerator = Math.abs((y2 - y1) * px - (x2 - x1) * py + x2 * y1 - y2 * x1);
+            const denominator = Math.sqrt((y2 - y1) ** 2 + (x2 - x1) ** 2);
+            return numerator / denominator;
+        }
+
+        function showExcenter() {
+            const canvas = document.getElementById('coordinate-plane');
+            const ctx = canvas.getContext('2d');
+            const excenters = calculateAllExcenters();
+
+            const lines = [
+                [[points[1][0], points[1][1]], [points[2][0], points[2][1]]], // BC
+                [[points[0][0], points[0][1]], [points[2][0], points[2][1]]], // CA
+                [[points[0][0], points[0][1]], [points[1][0], points[1][1]]]  // AB
+            ];
+
+            excenters.forEach((center, index) => {
+                const closestLine = lines[index]; // 방심과 가장 가까운 변
+                const radius = calculateDistanceToLine(center, closestLine[0], closestLine[1]);
+
+                // 방심 그리기
+                drawPoint(ctx, center, canvas, ['cyan', 'magenta', 'yellow'][index]);
+
+                // 방심을 중심으로 하는 원 그리기
+                drawCircles(ctx, center, radius, canvas);
+            });
+
+            updateOutput(`방심1: (${excenters[0][0].toFixed(2)}, ${excenters[0][1].toFixed(2)})\n` +
+                `방심2: (${excenters[1][0].toFixed(2)}, ${excenters[1][1].toFixed(2)})\n` +
+                `방심3: (${excenters[2][0].toFixed(2)}, ${excenters[2][1].toFixed(2)})`);
+        }
+
+        function drawCircles(ctx, center, radius, canvas) {
+            const [cx, cy] = convertCoordinates(center, canvas);
+            const scaledRadius = radius * 20; // 1 단위 = 20px
+            ctx.beginPath();
+            ctx.arc(cx, cy, scaledRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = 'green';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="input-section">
+        <h2>좌표 입력</h2>
+        <label for="point1">점 1 (x, y):</label>
+        <input type="text" id="point1" placeholder="예: 1,2">
+        <label for="point2">점 2 (x, y):</label>
+        <input type="text" id="point2" placeholder="예: 3,4">
+        <label for="point3">점 3 (x, y):</label>
+        <input type="text" id="point3" placeholder="예: 5,6">
+        <button onclick="drawTriangle()">삼각형 그리기</button>
+
+        <h3>특수점 표시</h3>
+        <button onclick="showCircumcenter()">1. 외심</button>
+        <button onclick="showIncenter()">2. 내심</button>
+        <button onclick="showCentroid()">3. 무게중심</button>
+        <button onclick="showOrthocenter()">4. 수심(터짐)</button>
+        <button onclick="showExcenter()">5. 방심</button>
+        <button onclick="drawTriangle()">모든 점 지우기</button>
+    </div>
+    <div class="canvas-section">
+        <h2>좌표평면</h2>
+        <canvas id="coordinate-plane" width="500" height="500"></canvas>
+        <div id="output"></div>
+    </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
