@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>삼각형의 특수점</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="website icon" type="svg" href="triangle.svg">
     <style>
         /* styles.css */
         body {
@@ -214,22 +215,7 @@
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //무게 중심
-        function drawLine(ctx, x, y, a, b) {
-            ctx.beginPath();
-            ctx.moveTo(x, y); // 시작점 (x, y)
-            ctx.lineTo(a, b); // 끝점 (a, b)
-            ctx.strokeStyle = 'blue'; // 선 색상
-            ctx.lineWidth = 2; // 선 두께
-            ctx.stroke(); // 선 그리기
-        }
-        function calculateMidpointX(x, y, a, b) {
-            const midX = (x + a) / 2;
-            return midX;
-        }
-        function calculateMidpointY(x, y, a, b) {
-            const midY = (y + b) / 2;
-            return midY ;
-        }
+
         function calculateCentroid() {
             const [[x1, y1], [x2, y2], [x3, y3]] = points;
             const cx = (x1 + x2 + x3) / 3;
@@ -239,18 +225,6 @@
         function showCentroid() {
             const canvas = document.getElementById('coordinate-plane');
             const ctx = canvas.getContext('2d');
-            const [[x1, y1], [x2, y2], [x3, y3]] = points;
-            const a1 = calculateMidpointX(x1,y1,x2,y2);
-            const b1 = calculateMidpointX(x2,y2,x3,y3);
-            const c1 = calculateMidpointX(x3,y3,x1,y1);
-            const a2 = calculateMidpointY(x1,y1,x2,y2);
-            const b2 = calculateMidpointY(x2,y2,x3,y3);
-            const c2 = calculateMidpointY(x1,y1,x3,y3);
-            console.log(a1,a2,b1,b2,c1,c2);
-
-            drawLine(ctx, a1,a2,x3,y3);
-            drawLine(ctx, b1,b2,x1,y1);
-            drawLine(ctx, c1,c2,x2,y2);
             const { center } = calculateCentroid();
             drawPoint(ctx, center, canvas, 'orange');
             updateOutput(`무게중심: (${center[0].toFixed(2)}, ${center[1].toFixed(2)})`);
@@ -261,170 +235,35 @@
         ////////////////////////////        ////////////////////////////        ////////////////////////////        ////////////////////////////        ////////////////////////////
 
         // // //수심
-        // function calculateOrthocenter() {
-        //     const [[x1, y1], [x2, y2], [x3, y3]] = points;
-        //
-        //     // 두 직선의 기울기 계산
-        //     const mAB = isNaN((y2 - y1) / (x2 - x1)) ? (y3 - y1) / (x3 - x1) : (y2 - y1) / (x2 - x1); // AB의 기울기
-        //     const mBC = isNaN((y3 - y2) / (x3 - x2)) ? (y3 - y1) / (x3 - x1) : (y3 - y2) / (x3 - x2); // BC의 기울기
-        //     console.log(mAB, mBC);
-        //
-        //     // 수선의 기울기 (역수의 음수)
-        //     const perpSlopeAB = isNaN(-1 / mAB) || !isFinite(-1 / mAB) ? 0 : -1 / mAB; // AB에 대한 수선의 기울기
-        //     const perpSlopeBC = isNaN(-1 / mBC) || !isFinite(-1 / mBC) ? 0 : -1 / mBC; // BC에 대한 수선의 기울기
-        //
-        //     console.log(perpSlopeAB, perpSlopeBC)
-        //
-        //     // 수선이 꼭짓점을 지나는 점 (수선의 방정식)
-        //     const bPerpAB = y3 - perpSlopeAB * x3; // AB에 대한 수선의 y절편
-        //     const bPerpBC = y1 - perpSlopeBC * x1; // BC에 대한 수선의 y절편
-        //
-        //     // 두 직선의 교점 계산
-        //     const ox = (bPerpBC - bPerpAB) / (perpSlopeAB - perpSlopeBC);
-        //     const oy = perpSlopeAB * ox + bPerpAB;
-        //
-        //     return { center: [ox, oy] };
-        // }
-        // function showOrthocenter() {
-        //     const canvas = document.getElementById('coordinate-plane');
-        //     const ctx = canvas.getContext('2d');
-        //     const { center } = calculateOrthocenter();
-        //     drawPoint(ctx, center, canvas, 'purple');
-        //     updateOutput(`수심: (${center[0].toFixed(2)}, ${center[1].toFixed(2)})`);
-        // }
-        // function calculateOrthocenter() {
-        //     const [[x1, y1], [x2, y2], [x3, y3]] = points;
-        //
-        //     const mAB = (y2 - y1) / (x2 - x1); // AB의 기울기
-        //     const mBC = (y3 - y2) / (x3 - x2); // BC의 기울기
-        //     const mCA = (y1 - y3) / (x1 - x3); // CA의 기울기
-        //     let ox,oy;
-        //
-        //     if(isNaN(mAB) || !isFinite(mAB)){
-        //         const reBC = -1/mBC;
-        //         const reCA = -1/mCA;
-        //         const passA = y1 - reBC * x1;
-        //         const passB = y2 - reCA * x2;
-        //         ox = (passB - passA) / (reBC - reCA);
-        //         oy = reBC * ox + passA;
-        //         console.log(1)
-        //     }
-        //     else if(isNaN(mBC) || !isFinite(mBC)){
-        //         const reAB = -1/mAB;
-        //         const reCA = -1/mCA;
-        //         const passC = y3 - reAB * x3;
-        //         const passB = y2 - reCA * x2;
-        //         ox = (passB - passC)/(reAB - reCA);
-        //         oy = reAB * ox + passC;
-        //         console.log(2)
-        //     }
-        //     else if(isNaN(mCA) || !isFinite(mCA)){
-        //         const reAB = -1/mAB;
-        //         const reBC = -1/mBC;
-        //         const passC = y3 - reAB * x3;
-        //         const passA = y1 - reBC * x1;
-        //         ox = (passA - passC) / (reAB - reBC);
-        //         oy = reBC * ox + passA;
-        //         console.log(3)
-        //     }
-        //     else{
-        //         const reAB = -1/mAB;
-        //         const reBC = -1/mBC;
-        //         const passC = y3 - reAB * x3;
-        //         const passA = y1 - reBC * x1;
-        //         ox = (passA - passC) / (reAB - reBC);
-        //         oy = reBC * ox + passA;
-        //         console.log(4)
-        //     }
-        //     console.log(ox,oy)
-        //     return { center : [ox, oy]};
-        // }
-        // function calculateOrthocenter() {
-        //     const [[x1, y1], [x2, y2], [x3, y3]] = points;
-        //
-        //     const mAB = (x2 - x1) === 0 ? Infinity : (y2 - y1) / (x2 - x1); // AB의 기울기
-        //     const mBC = (x3 - x2) === 0 ? Infinity : (y3 - y2) / (x3 - x2); // BC의 기울기
-        //     const mCA = (x1 - x3) === 0 ? Infinity : (y1 - y3) / (x1 - x3); // CA의 기울기
-        //     let ox, oy;
-        //
-        //     if (Math.abs(mAB) === Infinity) {
-        //         const reBC = -1 / mBC;
-        //         const reCA = -1 / mCA;
-        //         const passA = y1 - reBC * x1;
-        //         const passB = y2 - reCA * x2;
-        //         ox = (passB - passA) / (reBC - reCA);
-        //         oy = reBC * ox + passA;
-        //     } else if (Math.abs(mBC) === Infinity) {
-        //         const reAB = -1 / mAB;
-        //         const reCA = -1 / mCA;
-        //         const passC = y3 - reCA * x3;
-        //         const passB = y2 - reAB * x2;
-        //         ox = (passB - passC) / (reAB - reCA);
-        //         oy = reAB * ox + passB;
-        //     } else if (Math.abs(mCA) === Infinity) {
-        //         const reAB = -1 / mAB;
-        //         const reBC = -1 / mBC;
-        //         const passC = y3 - reAB * x3;
-        //         const passA = y1 - reBC * x1;
-        //         ox = (passA - passC) / (reBC - reAB);
-        //         oy = reBC * ox + passA;
-        //     } else {
-        //         const reAB = -1 / mAB;
-        //         const reBC = -1 / mBC;
-        //         const passC = y3 - reAB * x3;
-        //         const passA = y1 - reBC * x1;
-        //         ox = (passA - passC) / (reBC - reAB);
-        //         oy = reBC * ox + passA;
-        //     }
-        //
-        //     console.log(ox, oy);
-        //     return { center: [ox, oy] };
-        // }
-
-        //
-        // function showOrthocenter() {
-        //     const canvas = document.getElementById('coordinate-plane');
-        //     const ctx = canvas.getContext('2d');
-        //     const { center } = calculateOrthocenter();
-        //
-        //     drawPoint(ctx, center, canvas, 'purple');
-        //     updateOutput(`수심: (${center[0].toFixed(2)}, ${center[1].toFixed(2)})`);
-        // }
         function calculateOrthocenter() {
             const [[x1, y1], [x2, y2], [x3, y3]] = points;
 
-            // 두 변의 기울기 계산
-            const mAB = x2 === x1 ? Infinity : (y2 - y1) / (x2 - x1); // AB의 기울기
-            const mBC = x3 === x2 ? Infinity : (y3 - y2) / (x3 - x2); // BC의 기울기
+            // 선분 BC의 기울기
+            const slopeBC = x3 - x2 === 0 ? Infinity : (y3 - y2) / (x3 - x2);
+            // 선분 AC의 기울기
+            const slopeAC = x3 - x1 === 0 ? Infinity : (y3 - y1) / (x3 - x1);
 
-            // 수선의 기울기 (역수의 음수)
-            const perpSlopeAB = mAB === Infinity ? 0 : mAB === 0 ? Infinity : -1 / mAB; // AB에 대한 수선의 기울기
-            const perpSlopeBC = mBC === Infinity ? 0 : mBC === 0 ? Infinity : -1 / mBC; // BC에 대한 수선의 기울기
+            // 고도선 기울기 (BC에 수직인 고도선)
+            const altitudeSlopeA = slopeBC === 0 ? Infinity : slopeBC === Infinity ? 0 : -1 / slopeBC;
+            // 고도선 기울기 (AC에 수직인 고도선)
+            const altitudeSlopeB = slopeAC === 0 ? Infinity : slopeAC === Infinity ? 0 : -1 / slopeAC;
 
-            // 수선이 꼭짓점을 지나는 y절편 계산
-            const bPerpAB = mAB === Infinity ? x3 : y3 - perpSlopeAB * x3;
-            const bPerpBC = mBC === Infinity ? x1 : y1 - perpSlopeBC * x1;
-
-            // 두 수선의 교점 계산
-            if (perpSlopeAB === perpSlopeBC) {
-                // 수선이 평행한 경우 또는 동일한 기울기일 경우
-                return { center: [NaN, NaN] };
-            }
+            // 고도선 방정식: y - yA = m(x - xA)
+            const interceptA = altitudeSlopeA === Infinity ? x1 : y1 - altitudeSlopeA * x1; // y 절편 or x = xA
+            const interceptB = altitudeSlopeB === Infinity ? x2 : y2 - altitudeSlopeB * x2; // y 절편 or x = xB
 
             let ox, oy;
 
-            if (mAB === Infinity) {
-                // AB가 수직선인 경우
+            // 두 고도선의 교점 계산
+            if (altitudeSlopeA === Infinity) {
                 ox = x1;
-                oy = perpSlopeBC * ox + bPerpBC;
-            } else if (mBC === Infinity) {
-                // BC가 수직선인 경우
+                oy = altitudeSlopeB * ox + interceptB;
+            } else if (altitudeSlopeB === Infinity) {
                 ox = x2;
-                oy = perpSlopeAB * ox + bPerpAB;
+                oy = altitudeSlopeA * ox + interceptA;
             } else {
-                // 일반적인 경우
-                ox = (bPerpBC - bPerpAB) / (perpSlopeAB - perpSlopeBC);
-                oy = perpSlopeAB * ox + bPerpAB;
+                ox = (interceptB - interceptA) / (altitudeSlopeA - altitudeSlopeB);
+                oy = altitudeSlopeA * ox + interceptA;
             }
 
             return { center: [ox, oy] };
@@ -435,14 +274,10 @@
             const ctx = canvas.getContext('2d');
             const { center } = calculateOrthocenter();
 
-            if (isNaN(center[0]) || isNaN(center[1])) {
-                updateOutput("수심: 계산할 수 없습니다 (평행선 또는 다른 문제).");
-                return;
-            }
-
             drawPoint(ctx, center, canvas, 'purple');
             updateOutput(`수심: (${center[0].toFixed(2)}, ${center[1].toFixed(2)})`);
         }
+
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // //방심
@@ -524,7 +359,7 @@
         <button onclick="showCircumcenter()">1. 외심</button>
         <button onclick="showIncenter()">2. 내심</button>
         <button onclick="showCentroid()">3. 무게중심</button>
-        <button onclick="showOrthocenter()">4. 수심(터짐)</button>
+        <button onclick="showOrthocenter()">4. 수심</button>
         <button onclick="showExcenter()">5. 방심</button>
         <button onclick="drawTriangle()">모든 점 지우기</button>
     </div>
@@ -534,6 +369,5 @@
         <div id="output"></div>
     </div>
 </div>
-<script src="script.js"></script>
 </body>
 </html>
